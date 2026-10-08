@@ -31,7 +31,7 @@ All sound effects and music are synthesized in real time with the Web Audio API.
 
 ### 📟 Interactive Extras
 - Animated Doomguy face in the HUD that looks around
-- Swap Doomguy for the author's face (press `F`, click the face or the FACE button, or type `IDPHOTO`), with 12 pixel-art expressions that react to the game: happy, evil grin, sad, angry, ouch, hurt, god mode, and more
+- Swap Doomguy for the author's face (press `F`, or click the face or the FACE button), with 12 pixel-art expressions that react to the game: happy, evil grin, sad, angry, ouch, hurt, god mode, and more
 - Minimap
 - Sliding doors and secret push-walls
 - Toxic floor hazards
@@ -62,7 +62,6 @@ Type these during play, just like the original:
 |------|--------|
 | `IDDQD` | God mode (toggle) |
 | `IDKFA` | All weapons, full ammo, full armor, all keys |
-| `IDPHOTO` | Swap Doomguy ↔ author's face |
 
 ## 🎯 Why This Project?
 AI-assisted coding has reached an impressive level of fidelity. It works well for rapid prototyping and complex interactive simulations like a game engine.

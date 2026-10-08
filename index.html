@@ -389,7 +389,7 @@
         <button id="btn-music" class="icon-btn" title="Toggle Music">🎵 MUSIC: ON</button>
         <button id="btn-map" class="icon-btn" title="Toggle Automap (M)">🗺️ MAP (M)</button>
         <button id="btn-crt" class="icon-btn" title="Toggle CRT scanlines">📺 CRT: ON</button>
-        <button id="btn-face" class="icon-btn" title="Swap the status-bar face (F, click the face, or type IDPHOTO)">🙂 FACE: CLASSIC</button>
+        <button id="btn-face" class="icon-btn" title="Swap the status-bar face (F or click the face)">🙂 FACE: CLASSIC</button>
       </div>
     </div>
 
@@ -2261,7 +2261,7 @@
     const faceCtx = faceCanvas.getContext('2d');
 
     // Optional author face: 12 pre-rendered 48px frames in one horizontal strip,
-    // pixelated from a photo. Toggled with F, the FACE button, a click on the face, or IDPHOTO.
+    // pixelated from a photo. Toggled with F, the FACE button, or a click on the face.
     const AUTHOR_FACE_SIZE = 48;
     const AUTHOR_FACE_FRAMES = ['normal', 'look_left', 'look_right', 'happy', 'grin', 'sad', 'angry', 'ouch', 'hurt', 'badly_hurt', 'god', 'dead'];
     const authorFaceImg = new Image();
@@ -3124,7 +3124,8 @@
         mapBox.style.display = mapBox.style.display === 'block' ? 'none' : 'block';
       }
 
-      if (e.code === 'KeyF' && !e.repeat) {
+      // The F in IDKFA belongs to the cheat, not the face toggle.
+      if (e.code === 'KeyF' && !e.repeat && !continuesCheat('f')) {
         toggleFace();
       }
 
@@ -3176,6 +3177,18 @@
     });
 
     let cheatBuffer = '';
+    const CHEAT_CODES = ['iddqd', 'idkfa'];
+
+    // True when `key` is the next letter of a cheat code the player is partway through typing.
+    function continuesCheat(key) {
+      return CHEAT_CODES.some(code => {
+        for (let n = 1; n < code.length; n++) {
+          if (code[n] === key && cheatBuffer.endsWith(code.slice(0, n))) return true;
+        }
+        return false;
+      });
+    }
+
     function handleCheats(key) {
       cheatBuffer += key;
       if (cheatBuffer.length > 8) cheatBuffer = cheatBuffer.slice(-8);
@@ -3194,11 +3207,6 @@
         postMessage('VERY HAPPY AMMO ADDED (IDKFA)');
         cheatBuffer = '';
         updateHUD();
-      }
-      // Cheat letters avoid F, M and E so typing it doesn't also fire those keys.
-      if (cheatBuffer.includes('idphoto')) {
-        toggleFace();
-        cheatBuffer = '';
       }
     }
 
