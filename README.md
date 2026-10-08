@@ -55,6 +55,15 @@ Then pick a difficulty and rip and tear. 🔥
 | Shift | Run |
 | F / Click the face | Swap Doomguy ↔ author's face |
 
+### 🕹️ Cheat Codes
+Type these during play, just like the original:
+
+| Code | Effect |
+|------|--------|
+| `IDDQD` | God mode (toggle) |
+| `IDKFA` | All weapons, full ammo, full armor, all keys |
+| `IDPHOTO` | Swap Doomguy ↔ author's face |
+
 ## 🎯 Why This Project?
 AI-assisted coding has reached an impressive level of fidelity. It works well for rapid prototyping and complex interactive simulations like a game engine.
 
