@@ -1,12 +1,12 @@
-# Doom-Gemini37-ClaudeSonnet5
+# doom-ai-tribute
 
-🎮 A fully playable tribute to **DOOM**, built from scratch with AI (Gemini 3.7) in a **single HTML file** 💥
+🎮 A fully playable tribute to **DOOM**, built from scratch with AI in a **single HTML file** 💥
 
 No engines, no libraries, no assets: just pure **JavaScript**, **HTML5 Canvas**, and the **Web Audio API**.
 
-### ▶️ [Play it now in your browser](https://ibrahimsobh.github.io/Doom-Gemini37-ClaudeSonnet5/)
+### ▶️ [Play it now in your browser](https://ibrahimsobh.github.io/doom-ai-tribute/)
 
-[![Gameplay](screenshots/gameplay.png)](https://ibrahimsobh.github.io/Doom-Gemini37-ClaudeSonnet5/)
+[![Gameplay](screenshots/gameplay.png)](https://ibrahimsobh.github.io/doom-ai-tribute/)
 
 ## ✨ Features
 
@@ -37,7 +37,7 @@ All sound effects and music are synthesized in real time with the Web Audio API.
 - Toxic floor hazards
 
 ## 🚀 How to Play
-- **Online:** open the [GitHub Pages link](https://ibrahimsobh.github.io/Doom-Gemini37-ClaudeSonnet5/).
+- **Online:** open the [GitHub Pages link](https://ibrahimsobh.github.io/doom-ai-tribute/).
 - **Offline:** clone or download this repo and open `index.html` in a modern browser.
 
 Then pick a difficulty and rip and tear. 🔥
@@ -68,6 +68,13 @@ Type these during play, just like the original:
 AI-assisted coding has reached an impressive level of fidelity. It works well for rapid prototyping and complex interactive simulations like a game engine.
 
 Doom also matters to me personally. I used it during my PhD research in **Deep Learning, Computer Vision, and Reinforcement Learning**, so rebuilding it with AI felt like coming full circle. 🧑‍🎓
+
+## 🤖 Built With AI
+The game was developed and then updated by three AI models, in this order:
+
+1. **Gemini Flash 3.7**: built the original game from scratch.
+2. **Claude Sonnet 5**: continued development and updates.
+3. **Claude Opus 5.5**: fixed gameplay bugs (unreachable blue keycard, Plasma Rifle pickup, frame-rate-independent speed, door and hitscan fixes), added the swappable author face with 12 expressions, and updated the screenshots and this README.
 
 ## 📄 License
 Released under the [MIT License](LICENSE).
