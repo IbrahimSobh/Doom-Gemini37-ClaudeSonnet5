@@ -1278,6 +1278,22 @@
         ctx.fillRect(22, 15, 18, 4);
       });
 
+      SPRITES.plasma_pickup = makeSpriteCanvas(44, 26, (ctx) => {
+        const rad = ctx.createRadialGradient(22, 13, 2, 22, 13, 20);
+        rad.addColorStop(0, 'rgba(0, 255, 255, 0.6)');
+        rad.addColorStop(1, 'rgba(0, 120, 255, 0)');
+        ctx.fillStyle = rad;
+        ctx.fillRect(0, 0, 44, 26);
+
+        ctx.fillStyle = '#1e3048';
+        ctx.fillRect(6, 8, 24, 13);
+        ctx.fillStyle = '#00ffff';
+        ctx.fillRect(9, 11, 18, 3);
+        ctx.fillRect(9, 16, 18, 2);
+        ctx.fillStyle = '#556677';
+        ctx.fillRect(30, 11, 10, 5);
+      });
+
       // Props
       SPRITES.barrel = makeSpriteCanvas(32, 40, (ctx) => {
         ctx.fillStyle = '#2b4d24';
@@ -1606,6 +1622,23 @@
       return doors.find(d => d.x === x && d.y === y);
     }
 
+    // Whether a map cell stops sight lines, bullets and projectiles. Doors only
+    // count as see-through once they are mostly open.
+    function blocksShots(cx, cy) {
+      if (cx < 0 || cx >= MAP_W || cy < 0 || cy >= MAP_H) return true;
+      const cell = LEVEL_MAP[cy][cx];
+      if (cell === 0) return false;
+      if (cell === 5 || cell === 6) {
+        const d = getDoorAt(cx, cy);
+        return !d || d.offset < 0.75;
+      }
+      return true;
+    }
+
+    const ENEMY_TYPES = ['zombie', 'imp', 'demon'];
+    const SHOOTABLE_TYPES = [...ENEMY_TYPES, 'barrel'];
+    const ITEM_TYPES = ['medkit', 'armor', 'ammo_clip', 'shotgun_box', 'plasma_cell', 'blue_key', 'shotgun_pickup', 'chaingun_pickup', 'plasma_pickup'];
+
     function hasLineOfSight(x1, y1, x2, y2) {
       const dx = x2 - x1;
       const dy = y2 - y1;
@@ -1620,16 +1653,7 @@
       for (let i = 1; i < steps; i++) {
         const cx = Math.floor(x1 + dirX * i * stepSize);
         const cy = Math.floor(y1 + dirY * i * stepSize);
-        if (cx < 0 || cx >= MAP_W || cy < 0 || cy >= MAP_H) return false;
-        const cell = LEVEL_MAP[cy][cx];
-        if (cell > 0) {
-          if (cell === 5 || cell === 6) {
-            const d = getDoorAt(cx, cy);
-            if (!d || d.offset < 0.75) return false;
-          } else {
-            return false;
-          }
-        }
+        if (blocksShots(cx, cy)) return false;
       }
       return true;
     }
@@ -1729,7 +1753,7 @@
       enemyDefs.slice(0, count).forEach(e => {
         addEntity(e.type, e.x, e.y, { health: e.health, maxHealth: e.health, speed: e.speed || 0.022 });
       });
-      game.maxKills = game.entities.filter(e => ['zombie', 'imp', 'demon'].includes(e.type)).length;
+      game.maxKills = game.entities.filter(e => ENEMY_TYPES.includes(e.type)).length;
 
       const pickups = [
         { type: 'medkit', x: 2.0, y: 2.0 },
@@ -1744,7 +1768,10 @@
         { type: 'chaingun_pickup', x: 4.5, y: 11.5 },
         { type: 'plasma_cell', x: 5.5, y: 11.5 },
         { type: 'armor', x: 4.5, y: 12.5 },
-        { type: 'blue_key', x: 19.5, y: 4.0 },
+        // Blue key sits in the south-east hall; the blue-door closet it opens
+        // holds the Plasma Rifle.
+        { type: 'blue_key', x: 20.5, y: 21.5 },
+        { type: 'plasma_pickup', x: 19.5, y: 4.5 },
         { type: 'medkit', x: 15.5, y: 2.5 },
         { type: 'shotgun_box', x: 21.5, y: 2.5 },
         { type: 'medkit', x: 15.5, y: 10.5 },
@@ -2020,8 +2047,8 @@
         const spriteImg = getEntitySprite(e);
         if (!spriteImg) return;
 
-        const isItem = ['medkit', 'armor', 'ammo_clip', 'shotgun_box', 'plasma_cell', 'blue_key', 'shotgun_pickup', 'chaingun_pickup'].includes(e.type);
-        const scaleMult = ['zombie', 'imp', 'demon'].includes(e.type) ? 0.82 : 0.75;
+        const isItem = ITEM_TYPES.includes(e.type);
+        const scaleMult = ENEMY_TYPES.includes(e.type) ? 0.82 : 0.75;
         const floatOffset = isItem ? Math.sin(timeNow + e.x * 3) * 6 : 0;
 
         const spriteHeight = Math.abs(Math.floor((screenHeight / transformY) * scaleMult));
@@ -2339,7 +2366,7 @@
       let nearestDist = maxRange;
 
       game.entities.forEach(e => {
-        if (!e.active || ['medkit', 'armor', 'ammo_clip', 'shotgun_box', 'plasma_cell', 'blue_key', 'shotgun_pickup', 'chaingun_pickup', 'pillar'].includes(e.type)) return;
+        if (!e.active || !SHOOTABLE_TYPES.includes(e.type)) return;
         if (e.state === 'dead') return;
 
         const dx = e.x - fromX;
@@ -2360,8 +2387,7 @@
         checkDist += 0.2;
         const cx = Math.floor(fromX + dirX * checkDist);
         const cy = Math.floor(fromY + dirY * checkDist);
-        if (cx < 0 || cx >= MAP_W || cy < 0 || cy >= MAP_H) break;
-        if (LEVEL_MAP[cy][cx] > 0 && LEVEL_MAP[cy][cx] !== 5) {
+        if (blocksShots(cx, cy)) {
           blockedByWall = true;
           break;
         }
@@ -2446,6 +2472,7 @@
     }
 
     function damageEntity(e, amount) {
+      if (e.state === 'dead') return;
       e.health -= amount;
       e.state = 'pain';
       e.timer = Date.now();
@@ -2456,7 +2483,7 @@
           sound.playExplosion();
           triggerFlash('rgba(255, 100, 0, 0.6)', 0.6);
           game.entities.forEach(other => {
-            if (!other.active || other === e) return;
+            if (!other.active || other === e || !SHOOTABLE_TYPES.includes(other.type)) return;
             const dist = Math.hypot(other.x - e.x, other.y - e.y);
             if (dist < 2.5) damageEntity(other, 80);
           });
@@ -2560,13 +2587,15 @@
     }
 
     // --- Entity & AI Updates ---
-    function updateEntities(dt) {
+    // `step` is elapsed time in 60 fps frames, so per-frame speeds tuned at
+    // 60 fps play at the same real-time pace on any refresh rate.
+    function updateEntities(step) {
       const p = game.player;
       const now = Date.now();
 
       doors.forEach(d => {
         if (d.state === 'opening') {
-          d.offset += 0.05;
+          d.offset += 0.05 * step;
           if (d.offset >= 1.0) {
             d.offset = 1.0;
             d.state = 'open';
@@ -2583,7 +2612,7 @@
             }
           }
         } else if (d.state === 'closing') {
-          d.offset -= 0.03;
+          d.offset -= 0.03 * step;
           if (d.offset <= 0) {
             d.offset = 0;
             d.state = 'closed';
@@ -2601,18 +2630,17 @@
         if (!e.active) return;
 
         if (e.type === 'plasma' || e.type === 'fireball') {
-          e.x += e.vx;
-          e.y += e.vy;
+          e.x += e.vx * step;
+          e.y += e.vy * step;
 
-          const cell = LEVEL_MAP[Math.floor(e.y)] ? LEVEL_MAP[Math.floor(e.y)][Math.floor(e.x)] : 1;
-          if (cell > 0 && cell !== 5) {
+          if (blocksShots(Math.floor(e.x), Math.floor(e.y))) {
             e.active = false;
             return;
           }
 
           if (e.isPlayer) {
             game.entities.forEach(target => {
-              if (target.active && ['zombie', 'imp', 'demon', 'barrel'].includes(target.type) && target.state !== 'dead') {
+              if (e.active && target.active && SHOOTABLE_TYPES.includes(target.type) && target.state !== 'dead') {
                 if (Math.hypot(target.x - e.x, target.y - e.y) < 0.6) {
                   damageEntity(target, e.damage);
                   e.active = false;
@@ -2628,7 +2656,7 @@
           return;
         }
 
-        if (['zombie', 'imp', 'demon'].includes(e.type)) {
+        if (ENEMY_TYPES.includes(e.type)) {
           if (e.state === 'dead') return;
 
           if (e.state === 'pain' && now - e.timer > 300) {
@@ -2647,8 +2675,8 @@
             e.animFrame = Math.floor(now / 200);
 
             const angle = Math.atan2(p.y - e.y, p.x - e.x);
-            const nextX = e.x + Math.cos(angle) * e.speed;
-            const nextY = e.y + Math.sin(angle) * e.speed;
+            const nextX = e.x + Math.cos(angle) * e.speed * step;
+            const nextY = e.y + Math.sin(angle) * e.speed * step;
 
             if (LEVEL_MAP[Math.floor(nextY)] && LEVEL_MAP[Math.floor(nextY)][Math.floor(nextX)] === 0) {
               e.x = nextX;
@@ -2690,7 +2718,7 @@
           }
         }
 
-        if (['medkit', 'armor', 'ammo_clip', 'shotgun_box', 'plasma_cell', 'blue_key', 'shotgun_pickup', 'chaingun_pickup'].includes(e.type)) {
+        if (ITEM_TYPES.includes(e.type)) {
           if (Math.hypot(p.x - e.x, p.y - e.y) < 0.75) {
             let picked = false;
 
@@ -2730,6 +2758,12 @@
               switchWeapon(3);
               postMessage('YOU GOT THE CHAINGUN!');
               picked = true;
+            } else if (e.type === 'plasma_pickup') {
+              p.hasWeapons[4] = true;
+              p.ammo.plasma = Math.min(150, p.ammo.plasma + 40);
+              switchWeapon(4);
+              postMessage('YOU GOT THE PLASMA RIFLE!');
+              picked = true;
             }
 
             if (picked) {
@@ -2756,11 +2790,11 @@
       }
     }
 
-    function updatePlayer(dt) {
+    function updatePlayer(step) {
       const p = game.player;
       const isShift = game.keysDown['ShiftLeft'] || game.keysDown['ShiftRight'];
-      const moveSpeed = isShift ? 0.085 : 0.055;
-      const rotSpeed = 0.045;
+      const moveSpeed = (isShift ? 0.085 : 0.055) * step;
+      const rotSpeed = 0.045 * step;
 
       let dx = 0;
       let dy = 0;
@@ -2782,8 +2816,9 @@
         dy += p.planeY * moveSpeed;
       }
 
+      // E is the interact key, so only the arrow keys turn right.
       if (game.keysDown['KeyQ'] || game.keysDown['ArrowLeft'] || game.keysDown['q']) rotatePlayer(-rotSpeed);
-      if (game.keysDown['KeyE'] || game.keysDown['ArrowRight'] || game.keysDown['e']) rotatePlayer(rotSpeed);
+      if (game.keysDown['ArrowRight']) rotatePlayer(rotSpeed);
 
       const radius = 0.2;
       if (dx !== 0 || dy !== 0) {
@@ -2793,7 +2828,7 @@
         if (isWalkable(nextX + Math.sign(dx) * radius, p.y)) p.x = nextX;
         if (isWalkable(p.x, nextY + Math.sign(dy) * radius)) p.y = nextY;
 
-        p.weaponBob += 0.2;
+        p.weaponBob += 0.2 * step;
       } else {
         p.weaponBob = 0;
       }
@@ -2806,7 +2841,7 @@
       }
 
       if (Date.now() > p.faceTimer) {
-        if (Math.random() < 0.015) {
+        if (Math.random() < 0.015 * step) {
           p.faceState = Math.random() < 0.5 ? 'look_left' : 'look_right';
           p.faceTimer = Date.now() + 800;
         } else {
@@ -2814,7 +2849,7 @@
         }
       }
 
-      p.pitch *= 0.9;
+      p.pitch *= Math.pow(0.9, step);
     }
 
     function isWalkable(x, y) {
@@ -2873,7 +2908,7 @@
 
       game.entities.forEach(e => {
         if (!e.active || e.state === 'dead') return;
-        minimapCtx.fillStyle = ['zombie', 'imp', 'demon'].includes(e.type) ? '#ff2222' : '#2ecc40';
+        minimapCtx.fillStyle = ENEMY_TYPES.includes(e.type) ? '#ff2222' : '#2ecc40';
         minimapCtx.fillRect(e.x * cellSize - 1, e.y * cellSize - 1, 3, 3);
       });
 
@@ -2986,8 +3021,10 @@
       lastFrameTime = time;
 
       if (game.state === 'playing') {
-        updatePlayer(dt);
-        updateEntities(dt);
+        // Clamped so a long stall (e.g. a background tab) can't teleport things through walls.
+        const step = Math.min(Math.max(dt, 0) * 60, 3);
+        updatePlayer(step);
+        updateEntities(step);
         updateParticles(Math.min(dt, 0.1));
       }
 
