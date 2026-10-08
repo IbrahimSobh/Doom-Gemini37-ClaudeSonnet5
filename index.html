@@ -172,6 +172,7 @@
       justify-content: center;
       position: relative;
       overflow: hidden;
+      cursor: pointer;
     }
     #face-canvas {
       width: 68px;
@@ -376,6 +377,7 @@
         <button id="btn-music" class="icon-btn" title="Toggle Music">🎵 MUSIC: ON</button>
         <button id="btn-map" class="icon-btn" title="Toggle Automap (M)">🗺️ MAP (M)</button>
         <button id="btn-crt" class="icon-btn" title="Toggle CRT scanlines">📺 CRT: ON</button>
+        <button id="btn-face" class="icon-btn" title="Swap the status-bar face (F, click the face, or type IDPHOTO)">🙂 FACE: CLASSIC</button>
       </div>
     </div>
 
@@ -404,6 +406,7 @@
           <div><span>WASD / Arrow Keys</span>: Move & Strafe | <span>Mouse</span>: Aim & Look Around</div>
           <div><span>Left Click / Ctrl</span>: Fire Weapon | <span>1, 2, 3, 4, 5 / Wheel</span>: Switch Weapon</div>
           <div><span>E / Space</span>: Open Doors & Secret Walls | <span>M</span>: Minimap | <span>Shift</span>: Run</div>
+          <div><span>F</span> / <span>Click the face</span>: Swap Doomguy for the author's face</div>
           <div style="margin-top: 6px; color: #ffdc00;">💡 Tip: Doors stay open when used so you never get trapped! Pickups glow bright neon!</div>
         </div>
       </div>
@@ -433,7 +436,7 @@
         <div class="hud-val" id="hud-health">150%</div>
       </div>
 
-      <div id="face-box">
+      <div id="face-box" title="Click to swap faces">
         <canvas id="face-canvas" width="32" height="32"></canvas>
       </div>
 
@@ -2245,7 +2248,58 @@
     const faceCanvas = document.getElementById('face-canvas');
     const faceCtx = faceCanvas.getContext('2d');
 
+    // Optional author face: 12 pre-rendered 48px frames in one horizontal strip,
+    // pixelated from a photo. Toggled with F, the FACE button, a click on the face, or IDPHOTO.
+    const AUTHOR_FACE_SIZE = 48;
+    const AUTHOR_FACE_FRAMES = ['normal', 'look_left', 'look_right', 'happy', 'grin', 'sad', 'angry', 'ouch', 'hurt', 'badly_hurt', 'god', 'dead'];
+    const authorFaceImg = new Image();
+    authorFaceImg.src = 'data:image/png;base64,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';
+
+    let faceMode = 'classic';
+    try {
+      if (localStorage.getItem('doomFace') === 'author') faceMode = 'author';
+    } catch (e) { /* storage blocked: keep the default face */ }
+
+    function setFaceMode(mode) {
+      faceMode = mode;
+      faceCanvas.width = faceCanvas.height = mode === 'author' ? AUTHOR_FACE_SIZE : 32;
+      document.getElementById('btn-face').innerText = mode === 'author' ? '👓 FACE: IBRAHIM' : '🙂 FACE: CLASSIC';
+      try { localStorage.setItem('doomFace', mode); } catch (e) { /* not persisted */ }
+    }
+
+    function toggleFace() {
+      setFaceMode(faceMode === 'author' ? 'classic' : 'author');
+      postMessage(faceMode === 'author' ? "FACE: IBRAHIM (THE AUTHOR)" : 'FACE: CLASSIC DOOMGUY');
+    }
+
+    function authorFaceFrame() {
+      const p = game.player;
+      if (game.state === 'dead') return 'dead';
+      if (p.godMode) return 'god';
+      if (p.faceState === 'ouch') return 'ouch';
+      if (p.faceState === 'grin' || p.faceState === 'happy' || p.faceState === 'sad') return p.faceState;
+      // Rapid-fire weapons get a gritted, angry look while shooting.
+      if (p.currentWeapon >= 3 && Date.now() - p.weaponTimer < 400) return 'angry';
+      if (p.health < 40) return 'badly_hurt';
+      if (p.health < 80) return 'hurt';
+      if (p.faceState === 'look_left' || p.faceState === 'look_right') return p.faceState;
+      return 'normal';
+    }
+
+    function renderAuthorFace() {
+      faceCtx.fillStyle = '#08080a';
+      faceCtx.fillRect(0, 0, AUTHOR_FACE_SIZE, AUTHOR_FACE_SIZE);
+      if (!authorFaceImg.complete) return;
+      const idx = AUTHOR_FACE_FRAMES.indexOf(authorFaceFrame());
+      faceCtx.drawImage(authorFaceImg, idx * AUTHOR_FACE_SIZE, 0, AUTHOR_FACE_SIZE, AUTHOR_FACE_SIZE,
+        0, 0, AUTHOR_FACE_SIZE, AUTHOR_FACE_SIZE);
+    }
+
     function renderDoomguyFace() {
+      if (faceMode === 'author') {
+        renderAuthorFace();
+        return;
+      }
       const hp = game.player.health;
       faceCtx.fillStyle = '#08080a';
       faceCtx.fillRect(0, 0, 32, 32);
@@ -2275,7 +2329,7 @@
         faceCtx.fillRect(19 + eyeOffset, 12, 2, 2);
       }
 
-      if (game.player.faceState === 'grin') {
+      if (game.player.faceState === 'grin' || game.player.faceState === 'happy') {
         faceCtx.fillStyle = '#220000';
         faceCtx.fillRect(11, 18, 10, 3);
         faceCtx.fillStyle = '#ffffff';
@@ -2309,6 +2363,8 @@
       if (wpn.ammoType) {
         if (p.ammo[wpn.ammoType] < wpn.ammoCost) {
           postMessage('NO AMMO!');
+          p.faceState = 'sad';
+          p.faceTimer = Date.now() + 900;
           if (p.ammo.bullets > 0) switchWeapon(1);
           else switchWeapon(0);
           return;
@@ -2554,6 +2610,8 @@
             } else {
               sound.playPlayerPain();
               postMessage('LOCKED: REQUIRES BLUE KEYCARD');
+              p.faceState = 'sad';
+              p.faceTimer = Date.now() + 900;
             }
           }
         }
@@ -2769,7 +2827,8 @@
             if (picked) {
               sound.playItemPickup();
               triggerFlash('rgba(255, 215, 0, 0.4)', 0.35);
-              p.faceState = 'grin';
+              // New weapons earn the evil grin; ordinary items just a smile.
+              p.faceState = e.type.endsWith('_pickup') ? 'grin' : 'happy';
               p.faceTimer = now + 1200;
               e.active = false;
               game.totalItems++;
@@ -3053,7 +3112,11 @@
         mapBox.style.display = mapBox.style.display === 'block' ? 'none' : 'block';
       }
 
-      if (e.code === 'Space' || e.code === 'KeyF' || e.code === 'KeyE' || e.key === 'e' || e.key === 'E') {
+      if (e.code === 'KeyF' && !e.repeat) {
+        toggleFace();
+      }
+
+      if (e.code === 'Space' || e.code === 'KeyE' || e.key === 'e' || e.key === 'E') {
         tryInteract();
       }
 
@@ -3120,6 +3183,11 @@
         cheatBuffer = '';
         updateHUD();
       }
+      // Cheat letters avoid F, M and E so typing it doesn't also fire those keys.
+      if (cheatBuffer.includes('idphoto')) {
+        toggleFace();
+        cheatBuffer = '';
+      }
     }
 
     document.getElementById('btn-music').addEventListener('click', () => {
@@ -3132,6 +3200,10 @@
       const mapBox = document.getElementById('minimap-container');
       mapBox.style.display = mapBox.style.display === 'block' ? 'none' : 'block';
     });
+
+    document.getElementById('btn-face').addEventListener('click', toggleFace);
+    document.getElementById('face-box').addEventListener('click', toggleFace);
+    setFaceMode(faceMode);
 
     document.getElementById('btn-crt').addEventListener('click', () => {
       const crt = document.getElementById('crt-layer');
