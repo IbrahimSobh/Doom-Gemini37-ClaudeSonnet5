@@ -229,7 +229,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      /* "safe" keeps the top reachable (scrollable) if the menu is taller than the view */
       justify-content: center;
+      justify-content: safe center;
+      overflow-y: auto;
       z-index: 20;
       color: #fff;
       text-align: center;
@@ -295,6 +298,15 @@
       max-width: 600px;
     }
     .instructions-box span { color: #ffcc00; font-weight: bold; }
+
+    /* Shorter windows shrink the game view, so tighten the menus to keep them fully visible. */
+    @media (max-height: 860px) {
+      .overlay-screen { padding: 12px 20px; }
+      .doom-title { font-size: 44px; margin-bottom: 2px; }
+      .doom-subtitle { font-size: 14px; margin-bottom: 14px; }
+      .menu-btn { padding: 9px 26px; margin: 4px; font-size: 15px; }
+      .instructions-box { margin-top: 12px; padding: 8px 18px; font-size: 12px; line-height: 1.5; }
+    }
 
     #top-bar {
       display: flex;
