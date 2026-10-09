@@ -1,5 +1,7 @@
 # doom-ai-tribute
 
+[![Tests](https://github.com/IbrahimSobh/doom-ai-tribute/actions/workflows/tests.yml/badge.svg)](https://github.com/IbrahimSobh/doom-ai-tribute/actions/workflows/tests.yml)
+
 🎮 A fully playable tribute to **DOOM**, built from scratch with AI in a **single HTML file** 💥
 
 No engines, no libraries, no assets: just pure **JavaScript**, **HTML5 Canvas**, and the **Web Audio API**.
@@ -62,6 +64,14 @@ Type these during play, just like the original:
 |------|--------|
 | `IDDQD` | God mode (toggle) |
 | `IDKFA` | All weapons, full ammo, full armor, all keys |
+
+## 🧪 Tests
+Browser tests ([Playwright](https://playwright.dev)) run on every push and pull request via GitHub Actions. They load the game in Chromium, play it with real key presses, and check gameplay, cheats and the face swap. To run them locally (uses your installed Google Chrome):
+
+```bash
+npm install
+npm test
+```
 
 ## 🎯 Why This Project?
 AI-assisted coding has reached an impressive level of fidelity. It works well for rapid prototyping and complex interactive simulations like a game engine.
