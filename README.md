@@ -66,7 +66,9 @@ Type these during play, just like the original:
 | `IDKFA` | All weapons, full ammo, full armor, all keys |
 
 ## 🧪 Tests
-Browser tests ([Playwright](https://playwright.dev)) run on every push and pull request via GitHub Actions. They load the game in Chromium, play it with real key presses, and check gameplay, cheats and the face swap. To run them locally (uses your installed Google Chrome):
+Browser tests ([Playwright](https://playwright.dev)) run on every push and pull request via GitHub Actions. They load the game in Chromium, play it with real key presses, and check gameplay, cheats and the face swap. Changes reach `main` only through pull requests whose tests pass.
+
+To run them locally (uses your installed Google Chrome):
 
 ```bash
 npm install
