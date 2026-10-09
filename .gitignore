@@ -1,2 +1,7 @@
 # Locally rendered trailer videos (large binaries)
 video/
+
+# Test tooling
+node_modules/
+test-results/
+playwright-report/

@@ -1,0 +1,11 @@
+{
+  "name": "doom-ai-tribute",
+  "private": true,
+  "description": "Browser tests for the single-file DOOM tribute (the game itself has no build step).",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0"
+  }
+}
